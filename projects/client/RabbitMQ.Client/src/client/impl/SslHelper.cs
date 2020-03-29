@@ -43,6 +43,7 @@ using System.IO;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -62,7 +63,7 @@ namespace RabbitMQ.Client.Impl
         /// <summary>
         /// Upgrade a Tcp stream to an Ssl stream using the TLS options provided.
         /// </summary>
-        public static Stream TcpUpgrade(Stream tcpStream, SslOption options)
+        public static Stream TcpUpgrade(Stream tcpStream, SslOption options, TimeSpan timeout)
         {
             var helper = new SslHelper(options);
 
@@ -73,9 +74,16 @@ namespace RabbitMQ.Client.Impl
 
             var sslStream = new SslStream(tcpStream, false, remoteCertValidator, localCertSelector);
 
-            Action<SslOption> TryAuthenticating = (SslOption opts) => {
-                sslStream.AuthenticateAsClientAsync(opts.ServerName, opts.Certs, opts.Version,
-                                                    opts.CheckCertificateRevocation).GetAwaiter().GetResult();
+            Action<SslOption> TryAuthenticating = (SslOption opts) =>
+            {
+                sslStream
+                    .AuthenticateAsClientAsync(opts.ServerName,
+                        opts.Certs,
+                        opts.Version,
+                        opts.CheckCertificateRevocation)
+                    .TimeoutAfter(timeout)
+                    .GetAwaiter()
+                    .GetResult();
             };
             try {
                 TryAuthenticating(options);

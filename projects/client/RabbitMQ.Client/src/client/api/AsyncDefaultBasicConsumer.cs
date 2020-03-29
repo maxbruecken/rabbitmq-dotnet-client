@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using RabbitMQ.Client.Events;
 
-using TaskExtensions = RabbitMQ.Client.Impl.TaskExtensions;
+using TaskExtensions = RabbitMQ.Util.TaskExtensions;
 
 namespace RabbitMQ.Client
 {
@@ -134,7 +134,7 @@ namespace RabbitMQ.Client
         /// Default implementation - overridable in subclasses.</summary>
         /// <param name="consumerTags">The set of consumer tags that where cancelled</param>
         /// <remarks>
-        /// This default implementation simply sets the <see cref="IsRunning"/> 
+        /// This default implementation simply sets the <see cref="IsRunning"/>
         /// property to false, and takes no further action.
         /// </remarks>
         public virtual async Task OnCancel(params string[] consumerTags)

@@ -46,28 +46,12 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 using RabbitMQ.Client.Exceptions;
+using RabbitMQ.Util;
 
 namespace RabbitMQ.Client.Impl
 {
-    static class TaskExtensions
-    {
-        public static Task CompletedTask = Task.FromResult(0);
-
-        public static async Task TimeoutAfter(this Task task, TimeSpan timeout)
-        {
-            if (task == await Task.WhenAny(task, Task.Delay(timeout)).ConfigureAwait(false))
-                await task;
-            else
-            {
-                Task supressErrorTask = task.ContinueWith(t => t.Exception.Handle(e => true), TaskContinuationOptions.OnlyOnFaulted);
-                throw new TimeoutException();
-            }
-        }
-    }
-
     class SocketFrameHandler : IFrameHandler
     {
         // Socket poll timeout in ms. If the socket does not
@@ -112,7 +96,7 @@ namespace RabbitMQ.Client.Impl
             {
                 try
                 {
-                    netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl);
+                    netstream = SslHelper.TcpUpgrade(netstream, endpoint.Ssl, connectionTimeout);
                 }
                 catch (Exception)
                 {
